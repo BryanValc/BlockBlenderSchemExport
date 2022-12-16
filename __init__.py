@@ -1,6 +1,5 @@
 import bpy
 import csv
-import math
 from bpy_extras.io_utils import ExportHelper
 
 def write_csv(context, filepath):
@@ -14,9 +13,9 @@ def write_csv(context, filepath):
         if instance.is_instance and instance.parent == eval_ob:
             positions.append((
         instance.object.name,
-        int(((instance.object.matrix_local.translation[0]*2)/eval_ob.scale[0])*math.floor(eval_ob.scale[0])), 
-        int(((instance.object.matrix_local.translation[1]*2)/eval_ob.scale[0])*math.floor(eval_ob.scale[1])),
-        int(((instance.object.matrix_local.translation[2]*2)/eval_ob.scale[0])*math.floor(eval_ob.scale[2]))))
+        int(((instance.object.matrix_local.translation[0]*2)/eval_ob.scale[0])*round(eval_ob.scale[0])), 
+        int(((instance.object.matrix_local.translation[1]*2)/eval_ob.scale[0])*round(eval_ob.scale[1])),
+        int(((instance.object.matrix_local.translation[2]*2)/eval_ob.scale[0])*round(eval_ob.scale[2]))))
 
     with open(filepath, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
