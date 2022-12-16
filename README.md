@@ -11,7 +11,7 @@ to a CSV file
 <br>
 ![alt text](https://i.imgur.com/lg3PPW5.png)
 <br>
-by adding a export button for the context menu
+by adding an export option for the context menu
 <br>
 ![image](https://user-images.githubusercontent.com/71149864/208201321-c2353989-4d44-4083-ad2e-cc9edabc9996.png)
 <br>
