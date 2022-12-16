@@ -14,3 +14,7 @@ to a CSV file
 by adding a export button for the context menu
 <br>
 ![image](https://user-images.githubusercontent.com/71149864/208201321-c2353989-4d44-4083-ad2e-cc9edabc9996.png)
+<br>
+that lets you pick a destination folder and file name, it will export ONLY the instances of the SELECTED object
+<br>
+![alt text](https://i.imgur.com/6sVTqxf.png)
