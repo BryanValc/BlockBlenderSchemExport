@@ -1,0 +1,17 @@
+immutable_views-0.6.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+immutable_views-0.6.1.dist-info/LICENSE,sha256=CeipvOyAZxBGUsFoaFqwkx54aPnIKEtm9a5u2uXxEws,10142
+immutable_views-0.6.1.dist-info/METADATA,sha256=-cLx4mnYR9d_DI43XtXnXwwPcWZBvtqkb2-puFEdJLE,8774
+immutable_views-0.6.1.dist-info/RECORD,,
+immutable_views-0.6.1.dist-info/WHEEL,sha256=Z-nyYpwrcSqxfdux5Mbn_DQ525iP7J2DG3JgGvOYyTQ,110
+immutable_views-0.6.1.dist-info/top_level.txt,sha256=xCfHkBV95IVQONKwP3WOXUpaAqVcNYnHbrRu0Oc7a90,16
+immutable_views-0.6.1.dist-info/zip-safe,sha256=AbpHGcgLb-kRsJGnwFEktk7uzpZOCcBY74-YBdrKVGs,1
+immutable_views/__init__.py,sha256=XLeDlFH1R683xRkxSHaHKfELQcCMdx2ohbN6TUMvN7Y,1111
+immutable_views/__pycache__/__init__.cpython-310.pyc,,
+immutable_views/__pycache__/_dict_view.cpython-310.pyc,,
+immutable_views/__pycache__/_list_view.cpython-310.pyc,,
+immutable_views/__pycache__/_set_view.cpython-310.pyc,,
+immutable_views/__pycache__/_version.cpython-310.pyc,,
+immutable_views/_dict_view.py,sha256=QDNuiZcU7Dojdeq_1SxSG2St1LEFZcD7VcvjtCv7MB4,19699
+immutable_views/_list_view.py,sha256=joXShrcsYdcmrZe8IH7RN5Z_Wqb0EyVobEQRQnzvlPA,14942
+immutable_views/_set_view.py,sha256=Uk_h30bE2qkJquuuou_MT5-NvxF9L6RGIJY7w4Vxcog,22453
+immutable_views/_version.py,sha256=qCzAlEjyZngyaS7b2rcXXZl1hdQwCeJwC04vbh05pGQ,794

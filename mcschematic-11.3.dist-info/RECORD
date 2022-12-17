@@ -1,0 +1,11 @@
+mcschematic-11.3.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+mcschematic-11.3.dist-info/LICENSE,sha256=Rz7LWAHQIra9Qc2rHFq0ChD98hIqfw165LOSrLxq7Ec,11507
+mcschematic-11.3.dist-info/METADATA,sha256=ibr4t-XDCRSXK_8dW9osL73MGoK_X4Po8lxJ5z4EjXw,8377
+mcschematic-11.3.dist-info/RECORD,,
+mcschematic-11.3.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+mcschematic-11.3.dist-info/WHEEL,sha256=G16H4A3IeoQmnOrYV4ueZGKSjhipXx8zc8nu9FGlvMA,92
+mcschematic-11.3.dist-info/top_level.txt,sha256=_S9XqBLInsSOwBC96dhlU7g33HPUSNkTyLOsJABK1-c,12
+mcschematic/__init__.py,sha256=e4ysa5J9xzbiaTWlCDYxrzH3uvZ03Y_jYkvIC3Qsyx8,26
+mcschematic/__pycache__/__init__.cpython-310.pyc,,
+mcschematic/__pycache__/mcschematic.cpython-310.pyc,,
+mcschematic/mcschematic.py,sha256=bTlPinOToAEatWb3hLtqweiFtWhmqylJrqFoRsoFC9g,225877

@@ -1,9 +1,12 @@
-from mcschematic import mcschematic
 import bpy
+
 import subprocess
 from bpy.props import EnumProperty
 
 from bpy_extras.io_utils import ExportHelper
+
+from . import mcschematic, nbtlib, immutable_views
+
 
 bl_info = {
     "name": "BlockBlender to .schem export",
@@ -15,12 +18,6 @@ bl_info = {
     "warning": "Requires installation of dependencies",
     "tracker_url": "https://github.com/BryanValc/BlockBlenderCSVExport/issues",
     "category": "Import-Export"}
-
-python_path = bpy.app.binary_path.replace(
-    "blender.exe", "3.4\\python\\bin\\python.exe")
-subprocess.call([python_path, "-m", "ensurepip"])
-subprocess.call([python_path, "-m", "pip", "install", "--upgrade", "pip"])
-subprocess.call([python_path, "-m", "pip", "install", "mcschematic"])
 
 
 def write_schematic(context, filepath, version):

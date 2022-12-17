@@ -1,0 +1,223 @@
+Metadata-Version: 2.1
+Name: immutable-views
+Version: 0.6.1
+Summary: Immutable views on other collection objects
+Home-page: https://github.com/andy-maier/immutable-views
+Author: Andreas Maier
+Author-email: andreas.r.maier@gmx.de
+Maintainer: Andreas Maier
+Maintainer-email: andreas.r.maier@gmx.de
+License: Apache Software License 2.0
+Project-URL: Bug Tracker, https://github.com/andy-maier/immutable-views/issues
+Project-URL: Documentation, https://immutable-views.readthedocs.io/en/stable/
+Project-URL: Change Log, https://immutable-views.readthedocs.io/en/stable/changes.html
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+Description-Content-Type: text/x-rst
+
+immutable-views - Immutable views on other collection objects
+=============================================================
+
+.. image:: https://badge.fury.io/py/immutable-views.svg
+    :target: https://pypi.python.org/pypi/immutable-views/
+    :alt: Version on Pypi
+
+.. image:: https://github.com/andy-maier/immutable-views/workflows/test/badge.svg?branch=master
+    :target: https://github.com/andy-maier/immutable-views/actions/
+    :alt: Actions status
+
+.. image:: https://readthedocs.org/projects/immutable-views/badge/?version=latest
+    :target: https://readthedocs.org/projects/immutable-views/builds/
+    :alt: Docs build status (master)
+
+.. image:: https://coveralls.io/repos/github/andy-maier/immutable-views/badge.svg?branch=master
+    :target: https://coveralls.io/github/andy-maier/immutable-views?branch=master
+    :alt: Test coverage (master)
+
+
+Overview
+--------
+
+The **immutable-views** package provides collection classes that are immutable
+views on other (mutable) collection objects:
+
+* `DictView <https://immutable-views.readthedocs.io/en/latest/api_dict_view.html>`_ -
+  immutable view on another mapping (dictionary) object.
+* `ListView <https://immutable-views.readthedocs.io/en/latest/api_list_view.html>`_ -
+  immutable view on another sequence (list) object.
+* `SetView <https://immutable-views.readthedocs.io/en/latest/api_set_view.html>`_ -
+  immutable view on another set object.
+
+An important behavior of views is that they are "live": Since the view classes
+delegate to the underlying collection, any modification of the underlying
+collection object will be visible in the view object.
+
+Creating an immutable view on a collection does not copy the collection and
+is therefore much faster than creating an immutable copy of the collection.
+
+The memory overhead of using immutable views is very small: An object
+of any of the view classes in the **immutable-views** package occupies 40 Bytes
+(measured in CPython 3.9 on macOS), and because the view object only has a
+reference to its underlying collection object, that size is independent of the
+number of items in the collection.
+
+The compute overhead is also very small, it is basically an additional function
+call to the corresponding function of the underlying collection.
+
+Immutable views are useful if a method or function maintains data in form of a
+mutable collection and is intended to return that data but users should not be
+able to modify the data. The underlying collection can be updated by the method
+or function as needed, but the caller only gets an immutable view on it.
+
+The view classes in the **immutable-views** package implement the complete
+behavior of the corresponding Python collection types except for any
+operations that would modify the underlying collection object.
+
+The view classes delegate all operations to the underlying collection object
+they are a view of. Therefore, the underlying collection can be any kind of
+collection implementation (i.e. not just the standard Python collection
+classes).
+
+Note that the immutability of the view objects only applies to the view object
+itself and to its underlying collection, but not to the items in the underlying
+collection. So if the underlying collection contains mutable objects, they will
+still be mutable when accessed through the view objects.
+
+The standard Python class
+`types.MappingProxyType <https://docs.python.org/3/library/types.html#types.MappingProxyType>`_
+serves the same purpose as the
+`DictView <https://immutable-views.readthedocs.io/en/latest/api_dict_view.html>`_
+class but it does not support pickling or hashing and was added only in
+Python 3.3.
+The ``dictproxy`` class from the
+`dictproxyhack <https://pypi.org/project/dictproxyhack/>`_
+package on Pypi supports Python 2 and Python 3 and uses Python classes where
+available (e.g. ``MappingProxyType`` on Python 3.3 and later, and the internal
+``mappingproxy`` class used for ``__dict__`` on CPython) but also does not
+support pickling or hashing.
+The lack of support for standard dictionary behaviors prevents their use in
+cases where the view class is used as a read-only replacement for the standard
+dictionary.
+
+Note that there are several packages on Pypi that provide immutable
+collections, but they all are collections on their own, and not views on
+other collections. Here is a notable subset of such packages:
+
+* `immutables <https://pypi.org/project/immutables/>`_
+* `pyimmutable <https://pypi.org/project/pyimmutable/>`_
+* `frozenordereddict <https://pypi.org/project/frozenordereddict/>`_
+* `immutabledict <https://pypi.org/project/immutabledict/>`_
+* `frozendict <https://pypi.org/project/immutabledict/>`_
+* `itypes <https://pypi.org/project/itypes/>`_
+* `HashableDict <https://pypi.org/project/HashableDict/>`_
+* `shoobx.immutable <https://pypi.org/project/shoobx.immutable/>`_
+* `immutable-collection <https://pypi.org/project/immutable-collection/>`_
+* `Dict-Path-Immutable <https://pypi.org/project/Dict-Path-Immutable/>`_
+
+
+.. _`Examples`:
+
+Examples
+--------
+
+Example with dictionaries:
+
+.. code-block:: bash
+
+    $ python
+    >>> from immutable_views import DictView
+    >>> dict1 = {'a': 1, 'b': 2}
+    >>> dictview1 = DictView(dict1)
+
+    # Read-only access to the underlying collection through the view is supported:
+    >>> dictview1['a']
+    1
+
+    # Modifying the underlying collection through the view is rejected:
+    >>> dictview1['a'] = 2
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: 'DictView' object does not support item assignment
+
+    # Modifications of the underlying collection are visible in the view:
+    >>> dict1['a'] = 2
+    >>> dictview1['a']
+    2
+
+Example with lists:
+
+.. code-block:: bash
+
+    $ python
+    >>> from immutable_views import ListView
+    >>> list1 = ['a', 'b']
+    >>> listview1 = ListView(list1)
+
+    # Read-only access to the underlying collection through the view is supported:
+    >>> listview1[0]
+    'a'
+
+    # Modifying the underlying collection through the view is rejected:
+    >>> listview1[0] = 'c'
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: 'ListView' object does not support item assignment
+
+    # Modifications of the underlying collection are visible in the view:
+    >>> list1[0] = 'c'
+    >>> listview1[0]
+    'c'
+
+Example with sets:
+
+.. code-block:: bash
+
+    $ python
+    >>> from immutable_views import SetView
+    >>> set1 = {'a', 'b'}
+    >>> setview1 = SetView(set1)
+
+    # Read-only access to the underlying collection through the view is supported:
+    >>> 'a' in setview1
+    True
+
+    # Modifying the underlying collection through the view is rejected:
+    >>> setview1.add('c')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    AttributeError: 'SetView' object has no attribute 'add'
+
+    # Modifications of the underlying collection are visible in the view:
+    >>> set1.add('c')
+    >>> 'c' in setview1
+    True
+
+
+Documentation and change log
+----------------------------
+
+* `Documentation <https://immutable-views.readthedocs.io/en/latest/>`_
+* `Change log <https://immutable-views.readthedocs.io/en/latest/changes.html>`_
+
+
+License
+-------
+
+The **immutable-views** project is provided under the
+`Apache Software License 2.0 <https://raw.githubusercontent.com/andy-maier/immutable-views/master/LICENSE>`_.
+
+
