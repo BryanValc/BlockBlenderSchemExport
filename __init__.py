@@ -5,6 +5,17 @@ from bpy.props import EnumProperty
 
 from bpy_extras.io_utils import ExportHelper
 
+bl_info = {
+    "name": "BlockBlender to .schem export",
+    "author": "Bryan Valdez",
+    "version": (1, 0, 0),
+    "blender": (3, 4, 0),
+    "location": "File > Export > Export Minecraft .schem",
+    "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
+    "warning": "Requires installation of dependencies",
+    "tracker_url": "https://github.com/BryanValc/BlockBlenderCSVExport/issues",
+    "category": "Import-Export"}
+
 python_path = bpy.app.binary_path.replace(
     "blender.exe", "3.4\\python\\bin\\python.exe")
 subprocess.call([python_path, "-m", "ensurepip"])
@@ -90,7 +101,8 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         # Use the selected version when saving the schematic
-        write_schematic(context, self.filepath, mcschematic.Version[self.version])
+        write_schematic(context, self.filepath,
+                        mcschematic.Version[self.version])
         return {'FINISHED'}
 
     def draw(self, context):
@@ -99,14 +111,20 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "version")
 
 
-# register the export operator
-bpy.utils.register_class(ExportSCHEMATIC)
-
-
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
                          text="Export Minecraft .schem")
 
 
-# add to a menu
-bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+def register():
+    bpy.utils.register_class(ExportSCHEMATIC)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+
+
+def unregister():
+    bpy.utils.unregister_class(ExportSCHEMATIC)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+
+
+if __name__ == "__main__":
+    register()
