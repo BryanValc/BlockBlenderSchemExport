@@ -1,4 +1,5 @@
 import bpy
+import math
 import subprocess
 
 from bpy_extras.io_utils import ExportHelper
@@ -22,15 +23,15 @@ def write_schematic(context, filepath):
     for instance in dg.object_instances:
         if instance.is_instance and instance.parent == eval_ob:
             schematic.setBlock((
-            int(((((instance.object.matrix_local.translation[0])/eval_ob.scale[0])/instance.object.scale[0])*round(eval_ob.scale[0]))),
-            int(((((instance.object.matrix_local.translation[2])/eval_ob.scale[0])/instance.object.scale[2])*round(eval_ob.scale[2]))),
-            int(((((instance.object.matrix_local.translation[1])/eval_ob.scale[0])/instance.object.scale[1])*round(eval_ob.scale[1])))
+                int(((((instance.object.matrix_local.translation[0])/eval_ob.scale[0])/instance.object.scale[0])*round(eval_ob.scale[0]))),
+                int(((((instance.object.matrix_local.translation[2])/eval_ob.scale[0])/instance.object.scale[2])*round(eval_ob.scale[2]))),
+                int(((((instance.object.matrix_local.translation[1])/eval_ob.scale[0])/instance.object.scale[1])*round(eval_ob.scale[1])))
             ), "minecraft:"+instance.object.name)
 
     fullPath = filepath.replace("\\", "/").split("/")
     path = "/".join(fullPath[:-1])
     name = fullPath[-1]
-    name.replace(".schem", "")
+    name = name.replace(".schem", "")
 
     schematic.save(path, name, mcschematic.Version.JE_1_18_2)
 
