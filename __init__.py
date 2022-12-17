@@ -22,7 +22,7 @@ def write_schematic(context, filepath):
             schematic.setBlock((
             int((instance.object.matrix_local.translation[0]+(instance.object.scale[0]/2))/instance.object.scale[0]),
             int((instance.object.matrix_local.translation[2]+(instance.object.scale[2]/2))/instance.object.scale[2]),
-            int((instance.object.matrix_local.translation[1]+(instance.object.scale[1]/2))/instance.object.scale[1]),
+            -int((instance.object.matrix_local.translation[1]+(instance.object.scale[1]/2))/instance.object.scale[1]),
             ), "minecraft:"+instance.object.name)
 
     fullPath = filepath.replace("\\", "/").split("/")
