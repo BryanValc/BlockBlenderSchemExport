@@ -26,6 +26,7 @@ note that all the TRANSFORMS must be APPLIED so it can work properly
 NEVER apply the GEOMETRY NODE
 <br>
 ![apply geometry node](https://user-images.githubusercontent.com/71149864/208280170-590e88e9-d38f-41c4-a620-0e22a33de8a9.png)
-<because that way the instances data will be LOST, hence, the export will be IMPOSSIBLE>
+<br>
+because that way the instances data will be LOST, hence, the export will be IMPOSSIBLE
 <br>
 ![image](https://user-images.githubusercontent.com/71149864/208280211-59ace731-8152-441f-9abe-714db7b5e62e.png)
