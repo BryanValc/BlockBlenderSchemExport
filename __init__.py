@@ -53,12 +53,11 @@ def write_schematic(context, filepath, version):
         for instance in dg.object_instances:
             if instance.is_instance and instance.parent == eval_ob:
                 schematic.setBlock((
-                    int(((instance.object.matrix_local.translation[0]+(
-                        instance.object.matrix_world.to_scale()[0]/2))/instance.object.matrix_world.to_scale()[0])/eval_ob.scale[0]),
-                    int(((instance.object.matrix_local.translation[2]+(
-                        instance.object.matrix_world.to_scale()[2]/2))/instance.object.matrix_world.to_scale()[2])/eval_ob.scale[2]),
-                    -int(((instance.object.matrix_local.translation[1]+(
-                        instance.object.matrix_world.to_scale()[1]/2))/instance.object.matrix_world.to_scale()[1])/eval_ob.scale[1]),
+                    int((
+                        instance.object.matrix_local.translation[0])/instance.object.matrix_world.to_scale()[0]),
+                    int((
+                        instance.object.matrix_local.translation[2])/instance.object.matrix_world.to_scale()[2]),
+                    -int((instance.object.matrix_local.translation[1])/instance.object.matrix_world.to_scale()[1]),
                 ), "minecraft:"+instance.object.name)
 
         fullPath = filepath.replace("\\", "/").split("/")
