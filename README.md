@@ -19,7 +19,7 @@ that lets you pick a destination folder and file name, it will export ONLY the i
 <br>
 ![destination path](https://user-images.githubusercontent.com/71149864/208279895-2e34ed1e-dab7-4f01-a153-73eac9cac796.png)
 <br>
-note that all the TRANSFORMS must be APPLIED so it can work properly
+note that all the TRANSFORMS must be APPLIED so it can work properly (by default, select the object, then press CTRL+A, the menu will be displayed)
 <br>
 ![tranforms](https://user-images.githubusercontent.com/71149864/208280116-8658c615-532f-47dc-bf4e-f0c25285a0cf.png)
 <br>
