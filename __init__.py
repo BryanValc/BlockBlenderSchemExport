@@ -29,11 +29,6 @@ def warningRotation(self, context):
         text="It's not recommended to rotate the object when exporting to .schem, you should apply all the transforms!")
 
 
-def warningScale(self, context):
-    self.layout.label(
-        text="It's not recommended to scale the object when exporting to .schem, you should apply all the transforms!")
-
-
 def write_schematic(context, filepath, version):
     dg = context.evaluated_depsgraph_get()
     eval_ob = context.object.evaluated_get(dg)
@@ -44,20 +39,19 @@ def write_schematic(context, filepath, version):
     elif (eval_ob.rotation_euler[0] != 0 or eval_ob.rotation_euler[1] != 0 or eval_ob.rotation_euler[2] != 0):
         bpy.context.window_manager.popup_menu(
             warningRotation, title="Error", icon='ERROR')
-    elif (eval_ob.scale[0] != 1 or eval_ob.scale[1] != 1 or eval_ob.scale[2] != 1):
-        bpy.context.window_manager.popup_menu(
-            warningScale, title="Error", icon='ERROR')
+
     else:
         schematic = mcschematic.MCSchematic()
 
         for instance in dg.object_instances:
             if instance.is_instance and instance.parent == eval_ob:
                 schematic.setBlock((
-                    int((
-                        instance.object.matrix_local.translation[0])/instance.object.matrix_world.to_scale()[0]),
-                    int((
-                        instance.object.matrix_local.translation[2])/instance.object.matrix_world.to_scale()[2]),
-                    -int((instance.object.matrix_local.translation[1])/instance.object.matrix_world.to_scale()[1]),
+                    int((instance.object.matrix_world.translation[0]+(
+                        instance.object.matrix_world.to_scale()[0]*2))/instance.object.matrix_world.to_scale()[0]),
+                    int((instance.object.matrix_world.translation[2]+(
+                        instance.object.matrix_world.to_scale()[2]*2))/instance.object.matrix_world.to_scale()[2]),
+                    -int((instance.object.matrix_world.translation[1]+(
+                        instance.object.matrix_world.to_scale()[1]*2))/instance.object.matrix_world.to_scale()[1]),
                 ), "minecraft:"+instance.object.name)
 
         fullPath = filepath.replace("\\", "/").split("/")
