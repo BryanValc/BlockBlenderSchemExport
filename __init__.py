@@ -1,4 +1,5 @@
 import bpy
+import math
 
 import subprocess
 from bpy.props import EnumProperty
@@ -6,7 +7,6 @@ from bpy.props import EnumProperty
 from bpy_extras.io_utils import ExportHelper
 
 from . import mcschematic, nbtlib, immutable_views
-
 
 bl_info = {
     "name": "BlockBlender to .schem export",
@@ -39,23 +39,41 @@ def write_schematic(context, filepath, version):
     elif (eval_ob.rotation_euler[0] != 0 or eval_ob.rotation_euler[1] != 0 or eval_ob.rotation_euler[2] != 0):
         bpy.context.window_manager.popup_menu(
             warningRotation, title="Error", icon='ERROR')
-
     else:
         schematic = mcschematic.MCSchematic()
+        print("Exporting to .schem...")
 
-        for instance in dg.object_instances:
-            if instance.is_instance and instance.parent == eval_ob:
-                # for the red mushroom blocks that have all of the faces off
-                convertedName = instance.object.name.replace(
-                    "[all_faces=off]", "[down=false,up=false,east=false,west=false,north=false,south=false]")
-                schematic.setBlock((
-                    int((instance.object.matrix_world.translation[0]+(
-                        instance.object.matrix_world.to_scale()[0]*2))/instance.object.matrix_world.to_scale()[0]),
-                    int((instance.object.matrix_world.translation[2]+(
-                        instance.object.matrix_world.to_scale()[2]*2))/instance.object.matrix_world.to_scale()[2]),
-                    -int((instance.object.matrix_world.translation[1]+(
-                        instance.object.matrix_world.to_scale()[1]*2))/instance.object.matrix_world.to_scale()[1]),
-                ), "minecraft:"+convertedName)
+        if (len(eval_ob.data.vertices) > 0):
+            data = eval_ob.data
+            print(data.attributes[:])
+            print("Vertexes found, using vertex information")
+            min_distance = math.dist(data.vertices[0].co, data.vertices[1].co)
+            for i in range(len(data.vertices)):
+                if i % 8 == 0:
+                    pos = data.attributes["pos"].data[i].vector
+                    name = data.attributes["ID"].data[i].value
+                    # print("Adding block: " + str(name) + " at " + str(pos)) debug
+                    schematic.setBlock((
+                        int((pos[0]+(min_distance/2))/min_distance),
+                        int((pos[2]+(min_distance/2))/min_distance),
+                        -int((pos[1]+(min_distance/2))/min_distance)
+                    ), str(name))
+        else:
+            print("Instances found, using instance index")
+            for instance in dg.object_instances:
+                if (instance.is_instance and instance.parent == eval_ob):
+                    # for the red mushroom blocks that have all of the faces off
+                    convertedName = instance.object.name.replace(
+                        "[all_faces=off]", "[down=false,up=false,east=false,west=false,north=false,south=false]")
+                    schematic.setBlock((
+                        int((instance.object.matrix_world.translation[0]+(
+                            instance.object.matrix_world.to_scale()[0]*2))/instance.object.matrix_world.to_scale()[0]),
+                        int((instance.object.matrix_world.translation[2]+(
+                            instance.object.matrix_world.to_scale()[2]*2))/instance.object.matrix_world.to_scale()[2]),
+                        -int((instance.object.matrix_world.translation[1]+(
+                            instance.object.matrix_world.to_scale()[1]*2))/instance.object.matrix_world.to_scale()[1]),
+                    ), "minecraft:"+convertedName)
+
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
