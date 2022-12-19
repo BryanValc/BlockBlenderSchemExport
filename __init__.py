@@ -4,6 +4,8 @@ import math
 import subprocess
 from bpy.props import EnumProperty
 
+from . import block_list
+
 from bpy_extras.io_utils import ExportHelper
 
 from . import mcschematic, nbtlib, immutable_views
@@ -45,21 +47,21 @@ def write_schematic(context, filepath, version):
 
         if (len(eval_ob.data.vertices) > 0):
             data = eval_ob.data
-            print(data.attributes[:])
-            print("Vertexes found, using vertex information")
+            print("Vertices found, using vertex information")
             min_distance = math.dist(data.vertices[0].co, data.vertices[1].co)
-            for i in range(len(data.vertices)):
-                if i % 8 == 0:
-                    pos = data.attributes["pos"].data[i].vector
-                    name = data.attributes["ID"].data[i].value
-                    # print("Adding block: " + str(name) + " at " + str(pos)) debug
-                    schematic.setBlock((
-                        int((pos[0]+(min_distance/2))/min_distance),
-                        int((pos[2]+(min_distance/2))/min_distance),
-                        -int((pos[1]+(min_distance/2))/min_distance)
-                    ), str(name))
+            
+            for i in range(0,len(data.vertices),8):
+                pos = data.attributes["pos"].data[i].vector
+                nameId = data.attributes["ID"].data[i].value
+                name = "minecraft:"+block_list.get_block(nameId)
+                schematic.setBlock((
+                    int((pos[0]+(min_distance/2))/min_distance),
+                    int((pos[2]+(min_distance))/min_distance),
+                    -int((pos[1]+(min_distance/2))/min_distance)
+                ), name)
         else:
             print("Instances found, using instance index")
+            data = eval_ob.data
             for instance in dg.object_instances:
                 if (instance.is_instance and instance.parent == eval_ob):
                     # for the red mushroom blocks that have all of the faces off
@@ -67,13 +69,12 @@ def write_schematic(context, filepath, version):
                         "[all_faces=off]", "[down=false,up=false,east=false,west=false,north=false,south=false]")
                     schematic.setBlock((
                         int((instance.object.matrix_world.translation[0]+(
-                            instance.object.matrix_world.to_scale()[0]*2))/instance.object.matrix_world.to_scale()[0]),
+                            instance.object.matrix_world.to_scale()[0]/2))/instance.object.matrix_world.to_scale()[0]),
                         int((instance.object.matrix_world.translation[2]+(
-                            instance.object.matrix_world.to_scale()[2]*2))/instance.object.matrix_world.to_scale()[2]),
+                            instance.object.matrix_world.to_scale()[2]/2))/instance.object.matrix_world.to_scale()[2]),
                         -int((instance.object.matrix_world.translation[1]+(
-                            instance.object.matrix_world.to_scale()[1]*2))/instance.object.matrix_world.to_scale()[1]),
+                            instance.object.matrix_world.to_scale()[1]/2))/instance.object.matrix_world.to_scale()[1]),
                     ), "minecraft:"+convertedName)
-
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
