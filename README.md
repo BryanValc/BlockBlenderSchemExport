@@ -23,14 +23,6 @@ note that all the TRANSFORMS must be APPLIED so it can work properly (by default
 <br>
 ![tranforms](https://user-images.githubusercontent.com/71149864/208280116-8658c615-532f-47dc-bf4e-f0c25285a0cf.png)
 <br>
-NEVER apply the GEOMETRY NODE
-<br>
-![apply geometry node](https://user-images.githubusercontent.com/71149864/208280170-590e88e9-d38f-41c4-a620-0e22a33de8a9.png)
-<br>
-because that way the instances data will be LOST, hence, the export will be IMPOSSIBLE
-<br>
-![image](https://user-images.githubusercontent.com/71149864/208280211-59ace731-8152-441f-9abe-714db7b5e62e.png)
-<br>
 if you want to know how to actually import the .schem into minecraft, I recomend you watching this cool video :3
 <br>
 [![Converting any 3D model to minecraft](https://img.youtube.com/vi/uyFnaz_2T0I/0.jpg)](https://www.youtube.com/watch?v=uyFnaz_2T0I)
