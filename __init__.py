@@ -71,7 +71,7 @@ def write_schematic(context, filepath, version):
                         int((instance.object.matrix_world.translation[0]+(
                             instance.object.matrix_world.to_scale()[0]/2))/instance.object.matrix_world.to_scale()[0]),
                         int((instance.object.matrix_world.translation[2]+(
-                            instance.object.matrix_world.to_scale()[2]/2))/instance.object.matrix_world.to_scale()[2]),
+                            instance.object.matrix_world.to_scale()[2]))/instance.object.matrix_world.to_scale()[2]),
                         -int((instance.object.matrix_world.translation[1]+(
                             instance.object.matrix_world.to_scale()[1]/2))/instance.object.matrix_world.to_scale()[1]),
                     ), "minecraft:"+convertedName)
