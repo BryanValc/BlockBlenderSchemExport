@@ -237,7 +237,7 @@ blocks = {
     235:	"pink_concrete_powder",
     236:	"purple_concrete_powder",
     237:	"red_concrete_powder",
-    238:	"red_sandstone",
+    238:	"red_sand",
     239:	"sand",
     240:	"white_concrete_powder",
     241:	"yellow_concrete_powder",
