@@ -30,17 +30,18 @@ def warningRotation(self, context):
     self.layout.label(
         text="It's not recommended to rotate the object when exporting to .schem, you should apply all the transforms!")
 
-
 def write_schematic(context, filepath, version):
     dg = context.evaluated_depsgraph_get()
     eval_ob = context.object.evaluated_get(dg)
 
+    #set rotation to 0
+    eval_ob.rotation_euler[0] = 0
+    eval_ob.rotation_euler[1] = 0
+    eval_ob.rotation_euler[2] = 0
+
     if (eval_ob is None):
         bpy.context.window_manager.popup_menu(
             errorObjectNotSelected, title="Error", icon='ERROR')
-    elif (eval_ob.rotation_euler[0] != 0 or eval_ob.rotation_euler[1] != 0 or eval_ob.rotation_euler[2] != 0):
-        bpy.context.window_manager.popup_menu(
-            warningRotation, title="Error", icon='ERROR')
     else:
         schematic = mcschematic.MCSchematic()
         print("Exporting to .schem...")
