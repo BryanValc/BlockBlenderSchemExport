@@ -13,7 +13,7 @@ from . import mcschematic, nbtlib, immutable_views
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (3, 4, 0),
     "location": "File > Export > Export Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
@@ -67,13 +67,12 @@ def write_schematic(context, filepath, version):
                     # for the red mushroom blocks that have all of the faces off
                     convertedName = instance.object.name.replace(
                         "[all_faces=off]", "[down=false,up=false,east=false,west=false,north=false,south=false]")
+                    translation = instance.object.matrix_world.translation
+                    scale = instance.object.matrix_world.to_scale()
                     schematic.setBlock((
-                        int((instance.object.matrix_world.translation[0]+(
-                            instance.object.matrix_world.to_scale()[0]/2))/instance.object.matrix_world.to_scale()[0]),
-                        int((instance.object.matrix_world.translation[2]+(
-                            instance.object.matrix_world.to_scale()[2]))/instance.object.matrix_world.to_scale()[2]),
-                        -int((instance.object.matrix_world.translation[1]+(
-                            instance.object.matrix_world.to_scale()[1]/2))/instance.object.matrix_world.to_scale()[1]),
+                        int((translation[0]+(scale[0]/2))/scale[0]),
+                        int((translation[2]+(scale[2]))/scale[2]),
+                        -int((translation[1]+(scale[1]/2))/scale[1]),
                     ), "minecraft:"+convertedName)
 
         fullPath = filepath.replace("\\", "/").split("/")
