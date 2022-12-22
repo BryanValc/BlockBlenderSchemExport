@@ -30,3 +30,5 @@ if you want to know how to actually import the .schem into minecraft, I recomend
 please, consider supporting this project, you can support it here:
 <br>
 https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
+<br>
+I can use all the extra help I can get, if you think you can contribute with at least one commit to this project, I would gladly give you a 100% affiliate code on gumroad (I still need to think of an easier and more fair method, but I hope this can do for now) send me a discord message: EpicSpartanRyan#8948
