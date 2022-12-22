@@ -1,5 +1,6 @@
 import bpy
 import math
+import time
 
 import subprocess
 from bpy.props import EnumProperty
@@ -21,6 +22,9 @@ bl_info = {
     "tracker_url": "https://github.com/BryanValc/BlockBlenderCSVExport/issues",
     "category": "Import-Export"}
 
+start_time = 0
+end_time = 0
+block_count = 0
 
 def errorObjectNotSelected(self, context):
     self.layout.label(text="You have to select an object!")
@@ -30,14 +34,32 @@ def warningRotation(self, context):
     self.layout.label(
         text="It's not recommended to rotate the object when exporting to .schem, you should apply all the transforms!")
 
+# def exportStatistics(self, context):
+#     # global start_time
+#     # global end_time
+#     # global block_count
+
+#     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(end_time - start_time) + " seconds!, "+ str(block_count/(end_time - start_time)) + " blocks per second")
+
 def write_schematic(context, filepath, version):
+    # global start_time
+    # global end_time
+    # global block_count
+
     dg = context.evaluated_depsgraph_get()
     eval_ob = context.object.evaluated_get(dg)
 
-    #set rotation to 0
+    # for collection in bpy.data.collections:
+    # for obj in eval_ob.users_collection:
+    #     print(obj.name)
+
     eval_ob.rotation_euler[0] = 0
     eval_ob.rotation_euler[1] = 0
     eval_ob.rotation_euler[2] = 0
+
+    # we measure the starting time of the export
+    start_time = time.time()
+    block_count = 0
 
     if (eval_ob is None):
         bpy.context.window_manager.popup_menu(
@@ -54,15 +76,17 @@ def write_schematic(context, filepath, version):
             for i in range(0,len(data.vertices),8):
                 pos = data.attributes["pos"].data[i].vector
                 nameId = data.attributes["ID"].data[i].value
+                # get the name of the object from the list based on the ID
                 name = "minecraft:"+block_list.get_block(nameId)
+
                 schematic.setBlock((
                     int((pos[0]+(min_distance/2))/min_distance),
                     int((pos[2]+(min_distance/2))/min_distance),
                     -int((pos[1]+(min_distance/2))/min_distance)
                 ), name)
+                block_count += 1
         else:
             print("Instances found, using instance index")
-            data = eval_ob.data
             for instance in dg.object_instances:
                 if (instance.is_instance and instance.parent == eval_ob):
                     # for the red mushroom blocks that have all of the faces off
@@ -75,14 +99,23 @@ def write_schematic(context, filepath, version):
                         int((translation[2]+(scale[2]/2))/scale[2]),
                         -int((translation[1]+(scale[1]/2))/scale[1]),
                     ), "minecraft:"+convertedName)
+                    block_count += 1
 
+        schematic.getStructure().center(schematic.getStructure().getBounds())
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
         name = fullPath[-1]
 
+        # this is to remove the .schem extension from the name, this is because of the way the save function works
         name = name.replace(".schem", "")
 
         schematic.save(path, name, version)
+
+        end_time = time.time()
+        message1 = (filepath.replace("\\", "/") + " saved successfully!")
+        # message2 = ("Exported " + str(block_count) + " blocks in " + str(end_time - start_time) + " seconds!, "+ (block_count/(end_time - start_time)) + " blocks per second")
+        # display to user in a popup NERD THING
+        # bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
 
 
 class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
@@ -94,42 +127,42 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     # Add a new property to hold the selected version
     version: EnumProperty(
         items=[
-            ("JE_1_19_2", "JE 1.19.2", "Minecraft version 1.19.2"),
-            ("JE_1_18_2", "JE 1.18.2", "Minecraft version 1.18.2"),
-            ("JE_1_18", "JE 1.18", "Minecraft version 1.18"),
-            ("JE_1_17_1", "JE 1.17.1", "Minecraft version 1.17.1"),
-            ("JE_1_17", "JE 1.17", "Minecraft version 1.17"),
-            ("JE_1_16_5", "JE 1.16.5", "Minecraft version 1.16.5"),
-            ("JE_1_16_4", "JE 1.16.4", "Minecraft version 1.16.4"),
-            ("JE_1_16_3", "JE 1.16.3", "Minecraft version 1.16.3"),
-            ("JE_1_16_2", "JE 1.16.2", "Minecraft version 1.16.2"),
-            ("JE_1_16_1", "JE 1.16.1", "Minecraft version 1.16.1"),
-            ("JE_1_16", "JE 1.16", "Minecraft version 1.16"),
-            ("JE_1_15_2", "JE 1.15.2", "Minecraft version 1.15.2"),
-            ("JE_1_15_1", "JE 1.15.1", "Minecraft version 1.15.1"),
-            ("JE_1_15", "JE 1.15", "Minecraft version 1.15"),
-            ("JE_1_14_4", "JE 1.14.4", "Minecraft version 1.14.4"),
-            ("JE_1_14_3", "JE 1.14.3", "Minecraft version 1.14.3"),
-            ("JE_1_14_2", "JE 1.14.2", "Minecraft version 1.14.2"),
-            ("JE_1_14_1", "JE 1.14.1", "Minecraft version 1.14.1"),
-            ("JE_1_14", "JE 1.14", "Minecraft version 1.14"),
-            ("JE_1_13_2", "JE 1.13.2", "Minecraft version 1.13.2"),
-            ("JE_1_13_1", "JE 1.13.1", "Minecraft version 1.13.1"),
-            ("JE_1_13", "JE 1.13", "Minecraft version 1.13"),
-            ("JE_1_12_2", "JE 1.12.2", "Minecraft version 1.12.2"),
-            ("JE_1_12_1", "JE 1.12.1", "Minecraft version 1.12.1"),
-            ("JE_1_12", "JE 1.12", "Minecraft version 1.12"),
-            ("JE_1_11_2", "JE 1.11.2", "Minecraft version 1.11.2"),
-            ("JE_1_11_1", "JE 1.11.1", "Minecraft version 1.11.1"),
-            ("JE_1_11", "JE 1.11", "Minecraft version 1.11"),
-            ("JE_1_10_2", "JE 1.10.2", "Minecraft version 1.10.2"),
-            ("JE_1_10_1", "JE 1.10.1", "Minecraft version 1.10.1"),
-            ("JE_1_10", "JE 1.10", "Minecraft version 1.10"),
-            ("JE_1_9_4", "JE 1.9.4", "Minecraft version 1.9.4"),
-            ("JE_1_9_3", "JE 1.9.3", "Minecraft version 1.9.3"),
-            ("JE_1_9_2", "JE 1.9.2", "Minecraft version 1.9.2"),
-            ("JE_1_9_1", "JE 1.9.1", "Minecraft version 1.9.1"),
-            ("JE_1_9", "JE 1.9", "Minecraft version 1.9")
+            ("JE_1_19_2", "JE 1.19.2", "Minecraft Java version 1.19.2"),
+            ("JE_1_18_2", "JE 1.18.2", "Minecraft Java version 1.18.2"),
+            ("JE_1_18", "JE 1.18", "Minecraft Java version 1.18"),
+            ("JE_1_17_1", "JE 1.17.1", "Minecraft Java version 1.17.1"),
+            ("JE_1_17", "JE 1.17", "Minecraft Java version 1.17"),
+            ("JE_1_16_5", "JE 1.16.5", "Minecraft Java version 1.16.5"),
+            ("JE_1_16_4", "JE 1.16.4", "Minecraft Java version 1.16.4"),
+            ("JE_1_16_3", "JE 1.16.3", "Minecraft Java version 1.16.3"),
+            ("JE_1_16_2", "JE 1.16.2", "Minecraft Java version 1.16.2"),
+            ("JE_1_16_1", "JE 1.16.1", "Minecraft Java version 1.16.1"),
+            ("JE_1_16", "JE 1.16", "Minecraft Java version 1.16"),
+            ("JE_1_15_2", "JE 1.15.2", "Minecraft Java version 1.15.2"),
+            ("JE_1_15_1", "JE 1.15.1", "Minecraft Java version 1.15.1"),
+            ("JE_1_15", "JE 1.15", "Minecraft Java version 1.15"),
+            ("JE_1_14_4", "JE 1.14.4", "Minecraft Java version 1.14.4"),
+            ("JE_1_14_3", "JE 1.14.3", "Minecraft Java version 1.14.3"),
+            ("JE_1_14_2", "JE 1.14.2", "Minecraft Java version 1.14.2"),
+            ("JE_1_14_1", "JE 1.14.1", "Minecraft Java version 1.14.1"),
+            ("JE_1_14", "JE 1.14", "Minecraft Java version 1.14"),
+            ("JE_1_13_2", "JE 1.13.2", "Minecraft Java version 1.13.2"),
+            ("JE_1_13_1", "JE 1.13.1", "Minecraft Java version 1.13.1"),
+            ("JE_1_13", "JE 1.13", "Minecraft Java version 1.13"),
+            ("JE_1_12_2", "JE 1.12.2", "Minecraft Java version 1.12.2"),
+            ("JE_1_12_1", "JE 1.12.1", "Minecraft Java version 1.12.1"),
+            ("JE_1_12", "JE 1.12", "Minecraft Java version 1.12"),
+            ("JE_1_11_2", "JE 1.11.2", "Minecraft Java version 1.11.2"),
+            ("JE_1_11_1", "JE 1.11.1", "Minecraft Java version 1.11.1"),
+            ("JE_1_11", "JE 1.11", "Minecraft Java version 1.11"),
+            ("JE_1_10_2", "JE 1.10.2", "Minecraft Java version 1.10.2"),
+            ("JE_1_10_1", "JE 1.10.1", "Minecraft Java version 1.10.1"),
+            ("JE_1_10", "JE 1.10", "Minecraft Java version 1.10"),
+            ("JE_1_9_4", "JE 1.9.4", "Minecraft Java version 1.9.4"),
+            ("JE_1_9_3", "JE 1.9.3", "Minecraft Java version 1.9.3"),
+            ("JE_1_9_2", "JE 1.9.2", "Minecraft Java version 1.9.2"),
+            ("JE_1_9_1", "JE 1.9.1", "Minecraft Java version 1.9.1"),
+            ("JE_1_9", "JE 1.9", "Minecraft Java version 1.9")
         ],
         name="Version",
         default="JE_1_19_2"
