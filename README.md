@@ -33,9 +33,3 @@ note that all the TRANSFORMS must be APPLIED so it can work properly (by default
 if you want to know how to actually import the .schem into minecraft, I recomend you watching this cool video :3
 <br>
 [![Converting any 3D model to minecraft](https://img.youtube.com/vi/uyFnaz_2T0I/0.jpg)](https://www.youtube.com/watch?v=uyFnaz_2T0I)
-<br>
-please, consider supporting this project, you can support it here:
-<br>
-https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
-<br>
-I can use all the extra help I can get, if you think you can contribute with at least one commit to this project, I would gladly give you a 100% affiliate code on gumroad (I still need to think of an easier and more fair method, but I hope this can do for now) send me a discord message: EpicSpartanRyan#8948
