@@ -4,7 +4,7 @@ Before you go straight and download it, please consider supporting this project,
 <br>
 https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
 <br>
-I need all the extra help I can get, because I didn't imagine this could turn into something this big, if you think you can contribute with at least one commit to this project, I would gladly give you a 100% affiliate code on gumroad (I still need to think of an easier and more fair method, but this is the best idea that came to my mind just now) send me a discord message: EpicSpartanRyan#8948
+I need all the extra help I can get, because I didn't imagine this could turn into something this big, and there can be endless implementations, if you think you can contribute with at least one commit to this project, I would gladly give you a 100% affiliate code on gumroad (I still need to think of an easier and more fair method, but this is the best idea that came to my mind just now) send me a discord message: EpicSpartanRyan#8948
 <br>
 This is a script that exports the blocks
 <br>
