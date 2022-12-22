@@ -1,4 +1,13 @@
 # BlockBlenderCSVExport
+
+Before you go straight and download it, please consider supporting this project, as it took me many days of almost 0 sleep, and my graphics card is dying so I really need the money :c, you can support it here, if you are a content creator, I can give you a 50% affiliate code:
+<br>
+https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
+<br>
+plus consider supporting the development of mcschematic here, the quick development of this couldn't have been possible without that library: https://www.paypal.com/paypalme/sloimayyy
+<br>
+I need all the extra help I can get, because I didn't imagine this could turn into something this big, and there can be endless implementations, if you think you can contribute with at least one commit to this project, I would gladly give you a 100% affiliate code on gumroad (I still need to think of an easier and more fair method, but this is the best idea that came to my mind just now) send me a discord message: EpicSpartanRyan#8948
+<br>
 This is a script that exports the blocks
 <br>
 ![minecraft blocks](https://user-images.githubusercontent.com/71149864/208280021-4e02c8b1-c11b-4573-aeb0-7ffe36de58e7.png)
@@ -26,7 +35,3 @@ note that all the TRANSFORMS must be APPLIED so it can work properly (by default
 if you want to know how to actually import the .schem into minecraft, I recomend you watching this cool video :3
 <br>
 [![Converting any 3D model to minecraft](https://img.youtube.com/vi/uyFnaz_2T0I/0.jpg)](https://www.youtube.com/watch?v=uyFnaz_2T0I)
-<br>
-please, consider supporting this project, you can support it here:
-<br>
-https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
