@@ -1,6 +1,6 @@
 # BlockBlenderCSVExport
 
-Before you go straight and download it, please consider supporting this project, as it took me many days of almost 0 sleep, and my graphics card is dying so I really need the money :c, you can support it here, if you are a content creator, I can give you a 50% affiliate code:
+Before you go straight and download it, please consider supporting this project, as it took me many days of almost 0 sleep, and my graphics card is dying so I really need the money :c, you can support it here, if you are a content creator, I can give you a 30%-50% affiliate code(this will be the case only week or more days after Joey C releases a former video showcase for this exporter and new things he's been working on, because otherwise I would feel like I'm betraying him, we've been both doing a lot of work on this together and helping each other, he didn't tell me any of this, but this is my point of view):
 <br>
 https://bryanvalc.gumroad.com/l/BlockBlenderToSchem
 <br>
