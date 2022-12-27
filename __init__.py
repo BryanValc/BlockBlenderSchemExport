@@ -22,9 +22,9 @@ bl_info = {
     "tracker_url": "https://github.com/BryanValc/BlockBlenderCSVExport/issues",
     "category": "Import-Export"}
 
-# start_time = 0 #NERD STATISTICS
-# end_time = 0
-# block_count = 0
+start_time = 0 #NERD STATISTICS
+end_time = 0
+block_count = 0
 
 def errorObjectNotSelected(self, context):
     self.layout.label(text="You have to select an object!")
@@ -34,33 +34,34 @@ def warningRotation(self, context):
     self.layout.label(
         text="It's not recommended to rotate the object when exporting to .schem, you should apply all the transforms!")
 
-# def exportStatistics(self, context):  #NERD STATISTICS
-#      global start_time
-#      global end_time
-#      global block_count
+def exportStatistics(self, context):  #NERD STATISTICS
+    global start_time
+    global end_time
+    global block_count
+    
+    self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, "+ str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
-#     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(end_time - start_time) + " seconds!, "+ str(block_count/(end_time - start_time)) + " blocks per second")
 
 def write_schematic(context, filepath, version, origin):
-    # global start_time     #NERD STATISTICS
-    # global end_time
-    # global block_count
+    global start_time     #NERD STATISTICS
+    global end_time
+    global block_count
 
     dg = context.evaluated_depsgraph_get()
     eval_ob = context.object.evaluated_get(dg)
 
     # get the material names from the global collection index, this will eventually be useful
     # for collection in bpy.data.collections:
-    # for obj in eval_ob.users_collection:
-    #     print(obj.name)
+    #     for obj in eval_ob.users_collection:
+    #         print(obj.name)
 
     eval_ob.rotation_euler[0] = 0   #rotation fix for realized instances, doesn't work with non realized instances
     eval_ob.rotation_euler[1] = 0
     eval_ob.rotation_euler[2] = 0
 
-    # we measure the starting time of the export, some #NERD STATISTICS
-    # start_time = time.time()
-    # block_count = 0
+    # we measure the starting time of the export, some NERD STATISTICS
+    start_time = time.time()
+    block_count = 0
 
     if (eval_ob is None):
         bpy.context.window_manager.popup_menu(
@@ -85,7 +86,7 @@ def write_schematic(context, filepath, version, origin):
                     int((pos[2]+(min_distance/2))/min_distance),
                     -int((pos[1]+(min_distance/2))/min_distance)
                 ), name)
-                # block_count += 1 #NERD STATISTICS
+                block_count += 1 #NERD STATISTICS
         else:
             print("Instances found, using instance index")
             for instance in dg.object_instances:
@@ -114,11 +115,11 @@ def write_schematic(context, filepath, version, origin):
 
         schematic.save(path, name, version)
 
-        # end_time = time.time() #NERD STATISTICS
-        # message1 = (filepath.replace("\\", "/") + " saved successfully!")
+        end_time = time.time() #NERD STATISTICS
+        message1 = (filepath.replace("\\", "/") + " saved successfully!")
         # message2 = ("Exported " + str(block_count) + " blocks in " + str(end_time - start_time) + " seconds!, "+ (block_count/(end_time - start_time)) + " blocks per second")
         # display to user in a popup the nerd statistics
-        # bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
+        bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
 
 
 class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
