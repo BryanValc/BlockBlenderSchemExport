@@ -15,7 +15,7 @@ from . import mcschematic, nbtlib, immutable_views
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 2, 0),
+    "version": (1, 2, 1),
     "blender": (3, 4, 0),
     "location": "File > Export > Export Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
@@ -45,7 +45,7 @@ def exportStatistics(self, context):  #NERD STATISTICS
     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, with a size of " + str(dimensions) + ", " + str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled):
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -113,7 +113,7 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
 
         # rotate the structure if the user wants to
         if (rotation != (0, 0, 0)):	
-            schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), yaw=rotation[2], pitch=rotation[0], roll=rotation[1])
+            schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), pitch=rotation[0], yaw=rotation[1], roll=rotation[2])
         
         # scale the structure if the user wants to
         if (scaleXYZ != (1, 1, 1)):
@@ -134,6 +134,10 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
 
                 schematic = temp_schematic
                 block_count = temp_block_count
+
+        if (y_offset_percentage != 0):
+            offset = int((schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())[1] / 100) * y_offset_percentage)
+            schematic.getStructure().translate((0, offset, 0))
                 
         dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
@@ -216,7 +220,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default=(0, 0, 0),
         min=-360,
         max=360,
-        description="Rotation around X, Y and Z axis"
+        description="Rotation around X, Y and Z axis, inside minecraft X is the red \n axis, Y is the green axis and Z is the blue axis"
     )
 
     scale: IntVectorProperty(
@@ -224,25 +228,33 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default=(1, 1, 1),
         min=1,
         max=100,
-        description="Scale for X, Y and Z axis"
+        description="Scale for X, Y and Z axis, inside minecraft X is the red axis, \n Y is the green axis and Z is the blue axis"
     )
 
     connect_scaled: BoolProperty(
         name="Connect scaled blocks",
         default=True,
-        description="Fill scale for X, Y and Z axis with the same value, otherwise if the scales are different from 1, blocks will be flying"
+        description="Fill scale for X, Y and Z axis with the same value, otherwise \n if the scales are different from 1, blocks will be flying"
     )
 
     hollow_scaled: BoolProperty(
         name="Hollow scaled blocks",
         default=False,
-        description="Hollow the scaled blocks, so for example, 10x10x10 blocks will have a hollow of 8x8x8(this is quicker)"
+        description="Hollow the scaled blocks, so for example, 10x10x10 blocks will \n have a hollow of 8x8x8(this is quicker)"
+    )
+
+    y_percentage_offset: FloatProperty(
+        name="Y percentage offset",
+        default=0,
+        min=-10000,
+        max=10000,
+        description="Percentage of the Y axis to offset the origin point, \n 50% will be bottom of the schematic, if the origin is \n marked as local, it will be bottom centered"
     )
 
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -254,6 +266,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "scale")
         layout.prop(self, "connect_scaled")
         layout.prop(self, "hollow_scaled")
+        layout.prop(self, "y_percentage_offset")
 
         
 
