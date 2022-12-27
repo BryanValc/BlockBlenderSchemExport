@@ -106,13 +106,14 @@ def write_schematic(context, filepath, version, origin, rotation):
                     ), "minecraft:"+convertedName)
                     block_count += 1
 
-        dimensions = schematic.getStructure().getStructureDimensions()
+        dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
         if (origin == "local"):#center the structure if the user wants to
             schematic.getStructure().center(schematic.getStructure().getBounds())
 
         # rotate the structure if the user wants to
-        schematic.getStructure().rotateDegrees(rotation)
+        if (rotation[0] != 0 or rotation[1] != 0 or rotation[2] != 0):
+            schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), yaw=rotation[2], pitch=rotation[0], roll=rotation[1])
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
@@ -135,7 +136,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     filename_ext = ".schem"
 
     # Add a new property to hold the selected version
-    version: EnumProperty(
+    version: bpy.props.EnumProperty(
         items=[
             ("JE_1_19_2", "JE 1.19.2", "Minecraft Java version 1.19.2"),
             ("JE_1_18_2", "JE 1.18.2", "Minecraft Java version 1.18.2"),
@@ -179,7 +180,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     )
 
     # Add a new property to hold the origin point
-    origin: EnumProperty(
+    origin: bpy.props.EnumProperty(
         items=[
             ("world", "World origin", "Origin point relative to blender global coordinates(this is the way it was working before)"),
             ("local", "Centered", "Origin point to the center of the volume of the schematic in all 3 axis"),
@@ -188,31 +189,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="world"
     )
 
-    # rotationX: FloatProperty(
-    #     name="RotationX",
-    #     default=0,
-    #     min=-360,
-    #     max=360,
-    #     description="Rotation around X axis"
-    # )
-
-    # rotationY: FloatProperty(
-    #     name="RotationY",
-    #     default=0,
-    #     min=-360,
-    #     max=360,
-    #     description="Rotation around Y axis"
-    # )
-
-    # rotationZ: FloatProperty(
-    #     name="RotationZ",
-    #     default=0,
-    #     min=-360,
-    #     max=360,
-    #     description="Rotation around Z axis"
-    # )
-
-    rotation: FloatVectorProperty(
+    rotation: bpy.props.FloatVectorProperty(
         name="Rotation",
         default=(0, 0, 0),
         min=-360,
