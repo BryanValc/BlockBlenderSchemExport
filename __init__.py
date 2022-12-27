@@ -44,7 +44,7 @@ def exportStatistics(self, context):  #NERD STATISTICS
     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, with a size of " + str(dimensions) + ", " + str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
 
-def write_schematic(context, filepath, version, origin, rotation):
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -114,6 +114,9 @@ def write_schematic(context, filepath, version, origin, rotation):
         # rotate the structure if the user wants to
         if (rotation[0] != 0 or rotation[1] != 0 or rotation[2] != 0):
             schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), yaw=rotation[2], pitch=rotation[0], roll=rotation[1])
+        
+        if (scaleXYZ[0] != 1 or scaleXYZ[1] != 1 or scaleXYZ[2] != 1):
+            schematic.getStructure().scaleXYZ(anchorPoint=(0, 0, 0), scaleX=scaleXYZ[0], scaleY=scaleXYZ[1], scaleZ=scaleXYZ[2])
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
@@ -189,7 +192,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="world"
     )
 
-    rotation: bpy.props.FloatVectorProperty(
+    rotation: FloatVectorProperty(
         name="Rotation",
         default=(0, 0, 0),
         min=-360,
@@ -197,10 +200,18 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         description="Rotation around X, Y and Z axis"
     )
 
+    scale: FloatVectorProperty(
+        name="Scale",
+        default=(1, 1, 1),
+        min=0,
+        max=100,
+        description="Scale for X, Y and Z axis"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -214,6 +225,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         # layout.prop(self, "rotationZ")
 
         layout.prop(self, "rotation")
+        layout.prop(self, "scale")
 
         
 
