@@ -25,6 +25,7 @@ bl_info = {
 start_time = 0 #NERD STATISTICS
 end_time = 0
 block_count = 0
+dimensions = 0
 
 def errorObjectNotSelected(self, context):
     self.layout.label(text="You have to select an object!")
@@ -38,14 +39,16 @@ def exportStatistics(self, context):  #NERD STATISTICS
     global start_time
     global end_time
     global block_count
+    global dimensions
     
-    self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, "+ str(round(block_count/(end_time - start_time),2)) + " blocks per second")
+    self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, with a size of " + str(dimensions) + ", " + str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
 
-def write_schematic(context, filepath, version, origin):
+def write_schematic(context, filepath, version, origin, rotation):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
+    global dimensions
 
     dg = context.evaluated_depsgraph_get()
     eval_ob = context.object.evaluated_get(dg)
@@ -91,7 +94,7 @@ def write_schematic(context, filepath, version, origin):
             print("Instances found, using instance index")
             for instance in dg.object_instances:
                 if (instance.is_instance and instance.parent == eval_ob):
-                    # for the red mushroom blocks that have all of the faces off
+                    # handling red mushroom blocks that have all of the faces off
                     convertedName = instance.object.name.replace(
                         "[all_faces=off]", "[down=false,up=false,east=false,west=false,north=false,south=false]")
                     translation = instance.object.matrix_world.translation
@@ -103,8 +106,13 @@ def write_schematic(context, filepath, version, origin):
                     ), "minecraft:"+convertedName)
                     block_count += 1
 
+        dimensions = schematic.getStructure().getStructureDimensions()
+
         if (origin == "local"):#center the structure if the user wants to
             schematic.getStructure().center(schematic.getStructure().getBounds())
+
+        # rotate the structure if the user wants to
+        schematic.getStructure().rotateDegrees(rotation)
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
@@ -117,8 +125,6 @@ def write_schematic(context, filepath, version, origin):
 
         end_time = time.time() #NERD STATISTICS
         message1 = (filepath.replace("\\", "/") + " saved successfully!")
-        # message2 = ("Exported " + str(block_count) + " blocks in " + str(end_time - start_time) + " seconds!, "+ (block_count/(end_time - start_time)) + " blocks per second")
-        # display to user in a popup the nerd statistics
         bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
 
 
@@ -182,10 +188,42 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="world"
     )
 
+    # rotationX: FloatProperty(
+    #     name="RotationX",
+    #     default=0,
+    #     min=-360,
+    #     max=360,
+    #     description="Rotation around X axis"
+    # )
+
+    # rotationY: FloatProperty(
+    #     name="RotationY",
+    #     default=0,
+    #     min=-360,
+    #     max=360,
+    #     description="Rotation around Y axis"
+    # )
+
+    # rotationZ: FloatProperty(
+    #     name="RotationZ",
+    #     default=0,
+    #     min=-360,
+    #     max=360,
+    #     description="Rotation around Z axis"
+    # )
+
+    rotation: FloatVectorProperty(
+        name="Rotation",
+        default=(0, 0, 0),
+        min=-360,
+        max=360,
+        description="Rotation around X, Y and Z axis"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin)
+                        mcschematic.Version[self.version], self.origin, self.rotation)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -193,6 +231,14 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         # Add the enum property to the panel
         layout.prop(self, "version")
         layout.prop(self, "origin")
+
+        # layout.prop(self, "rotationX")
+        # layout.prop(self, "rotationY")
+        # layout.prop(self, "rotationZ")
+
+        layout.prop(self, "rotation")
+
+        
 
 
 def menu_func_export(self, context):
