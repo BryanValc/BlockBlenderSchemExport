@@ -1,6 +1,7 @@
 import bpy
 import math
 import time
+import itertools
 
 import subprocess
 from bpy.props import EnumProperty
@@ -44,7 +45,7 @@ def exportStatistics(self, context):  #NERD STATISTICS
     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, with a size of " + str(dimensions) + ", " + str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ):
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -106,17 +107,35 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ):
                     ), "minecraft:"+convertedName)
                     block_count += 1
 
-        dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
-
-        if (origin == "local"):#center the structure if the user wants to
+        #center the structure if the user wants to
+        if (origin == "local"):
             schematic.getStructure().center(schematic.getStructure().getBounds())
 
         # rotate the structure if the user wants to
-        if (rotation[0] != 0 or rotation[1] != 0 or rotation[2] != 0):
+        if (rotation != (0, 0, 0)):	
             schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), yaw=rotation[2], pitch=rotation[0], roll=rotation[1])
         
-        if (scaleXYZ[0] != 1 or scaleXYZ[1] != 1 or scaleXYZ[2] != 1):
+        # scale the structure if the user wants to
+        if (scaleXYZ != (1, 1, 1)):
             schematic.getStructure().scaleXYZ(anchorPoint=(0, 0, 0), scaleX=scaleXYZ[0], scaleY=scaleXYZ[1], scaleZ=scaleXYZ[2])
+            if connect_scaled:
+                temp_schematic = mcschematic.MCSchematic()
+                temp_block_count = 0
+
+                if hollow_scaled:
+                    for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
+                        if(i == 0 or i == scaleXYZ[0]-1 or j == 0 or j == scaleXYZ[1]-1 or k == 0 or k == scaleXYZ[2]-1):
+                            temp_schematic.placeSchematic(schematic, (i, j, k))
+                            temp_block_count += block_count
+                else:
+                    for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
+                        temp_schematic.placeSchematic(schematic, (i, j, k))
+                        temp_block_count += block_count
+
+                schematic = temp_schematic
+                block_count = temp_block_count
+                
+        dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
         fullPath = filepath.replace("\\", "/").split("/")
         path = "/".join(fullPath[:-1])
@@ -139,7 +158,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     filename_ext = ".schem"
 
     # Add a new property to hold the selected version
-    version: bpy.props.EnumProperty(
+    version: EnumProperty(
         items=[
             ("JE_1_19_2", "JE 1.19.2", "Minecraft Java version 1.19.2"),
             ("JE_1_18_2", "JE 1.18.2", "Minecraft Java version 1.18.2"),
@@ -183,7 +202,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     )
 
     # Add a new property to hold the origin point
-    origin: bpy.props.EnumProperty(
+    origin: EnumProperty(
         items=[
             ("world", "World origin", "Origin point relative to blender global coordinates(this is the way it was working before)"),
             ("local", "Centered", "Origin point to the center of the volume of the schematic in all 3 axis"),
@@ -200,32 +219,41 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         description="Rotation around X, Y and Z axis"
     )
 
-    scale: FloatVectorProperty(
+    scale: IntVectorProperty(
         name="Scale",
         default=(1, 1, 1),
-        min=0,
+        min=1,
         max=100,
         description="Scale for X, Y and Z axis"
+    )
+
+    connect_scaled: BoolProperty(
+        name="Connect scaled blocks",
+        default=True,
+        description="Fill scale for X, Y and Z axis with the same value, otherwise if the scales are different from 1, blocks will be flying"
+    )
+
+    hollow_scaled: BoolProperty(
+        name="Hollow scaled blocks",
+        default=False,
+        description="Hollow the scaled blocks, so for example, 10x10x10 blocks will have a hollow of 8x8x8(this is quicker)"
     )
 
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled)
         return {'FINISHED'}
 
     def draw(self, context):
         layout = self.layout
-        # Add the enum property to the panel
+        # Add properties to the export window
         layout.prop(self, "version")
         layout.prop(self, "origin")
-
-        # layout.prop(self, "rotationX")
-        # layout.prop(self, "rotationY")
-        # layout.prop(self, "rotationZ")
-
         layout.prop(self, "rotation")
         layout.prop(self, "scale")
+        layout.prop(self, "connect_scaled")
+        layout.prop(self, "hollow_scaled")
 
         
 
