@@ -44,6 +44,28 @@ def exportStatistics(self, context):  #NERD STATISTICS
     
     self.layout.label(text="Exported " + str(block_count) + " blocks in " + str(round((end_time - start_time),2)) + " seconds!, with a size of " + str(dimensions) + ", " + str(round(block_count/(end_time - start_time),2)) + " blocks per second")
 
+# scale the structure if the user wants to
+def scale_schematic(schematic, scaleXYZ, connect_scaled, hollow_scaled):
+    global block_count
+    if (scaleXYZ != (1, 1, 1)):
+        schematic.getStructure().scaleXYZ(anchorPoint=(0, 0, 0), scaleX=scaleXYZ[0], scaleY=scaleXYZ[1], scaleZ=scaleXYZ[2])
+        if connect_scaled:
+            temp_schematic = mcschematic.MCSchematic()
+            temp_block_count = 0
+
+            if hollow_scaled:
+                for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
+                    if(i == 0 or i == scaleXYZ[0]-1 or j == 0 or j == scaleXYZ[1]-1 or k == 0 or k == scaleXYZ[2]-1):
+                        temp_schematic.placeSchematic(schematic, (i, j, k))
+                        temp_block_count += block_count
+            else:
+                for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
+                    temp_schematic.placeSchematic(schematic, (i, j, k))
+                    temp_block_count += block_count
+
+            schematic = temp_schematic
+            block_count = temp_block_count
+    return schematic
 
 def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage):
     global start_time     #NERD STATISTICS
@@ -116,24 +138,7 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
             schematic.getStructure().rotateDegrees(anchorPoint=(0, 0, 0), pitch=rotation[0], yaw=rotation[1], roll=rotation[2])
         
         # scale the structure if the user wants to
-        if (scaleXYZ != (1, 1, 1)):
-            schematic.getStructure().scaleXYZ(anchorPoint=(0, 0, 0), scaleX=scaleXYZ[0], scaleY=scaleXYZ[1], scaleZ=scaleXYZ[2])
-            if connect_scaled:
-                temp_schematic = mcschematic.MCSchematic()
-                temp_block_count = 0
-
-                if hollow_scaled:
-                    for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
-                        if(i == 0 or i == scaleXYZ[0]-1 or j == 0 or j == scaleXYZ[1]-1 or k == 0 or k == scaleXYZ[2]-1):
-                            temp_schematic.placeSchematic(schematic, (i, j, k))
-                            temp_block_count += block_count
-                else:
-                    for i, j, k in itertools.product(range(scaleXYZ[0]), range(scaleXYZ[1]), range(scaleXYZ[2])):
-                        temp_schematic.placeSchematic(schematic, (i, j, k))
-                        temp_block_count += block_count
-
-                schematic = temp_schematic
-                block_count = temp_block_count
+        schematic = scale_schematic(schematic, scaleXYZ, connect_scaled, hollow_scaled)
 
         if (y_offset_percentage != 0):
             offset = int((schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())[1] / 100) * y_offset_percentage)
@@ -164,7 +169,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     # Add a new property to hold the selected version
     version: EnumProperty(
         items=[
-            ("JE_1_19_2", "JE 1.19.2", "Minecraft Java version 1.19.2"),
+            ("JE_1_19_2", "JE 1.19.2(works for JE 1.19.3 also)", "Minecraft Java version 1.19.2"),
             ("JE_1_18_2", "JE 1.18.2", "Minecraft Java version 1.18.2"),
             ("JE_1_18", "JE 1.18", "Minecraft Java version 1.18"),
             ("JE_1_17_1", "JE 1.17.1", "Minecraft Java version 1.17.1"),
