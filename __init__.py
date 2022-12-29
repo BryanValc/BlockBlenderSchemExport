@@ -31,6 +31,8 @@ dimensions = 0
 def errorObjectNotSelected(self, context):
     self.layout.label(text="You have to select an object!")
 
+def errorSliceSize(self, context):
+    self.layout.label(text="The input is not valid, there cannot be slices with 0 or less blocks in any axis!")
 
 def warningRotation(self, context):
     self.layout.label(
@@ -67,7 +69,44 @@ def scale_schematic(schematic, scaleXYZ, connect_scaled, hollow_scaled):
             block_count = temp_block_count
     return schematic
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage):
+# export as slices if the user wants to
+def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming):
+
+    fullPath = filepath.replace("\\", "/").split("/")
+    path = "/".join(fullPath[:-1])
+    name = fullPath[-1]
+
+    # this is to remove the .schem extension from the name, this is because of the way the save function works
+    name = name.replace(".schem", "")
+
+    if (export_as_slices[0] == 0 and export_as_slices[1] == 0 and export_as_slices[2] == 0):
+        schematic.save(path, name, version)
+        return (filepath.replace("\\", "/") + " saved successfully!")
+    else:
+        if(export_as_slices[0] == 0 or export_as_slices[1] == 0 or export_as_slices[2] == 0):
+            bpy.context.window_manager.popup_menu(
+                errorSliceSize, title="Error", icon='ERROR')
+            return ""
+
+        bounds = schematic.getStructure().getBounds()
+        min_corner = bounds[0]
+        max_corner = bounds[1]
+        count = 0
+
+        for i in range(min_corner[0], max_corner[0]+1, export_as_slices[0]):
+            for j in range(min_corner[1], max_corner[1]+1, export_as_slices[1]):
+                for k in range(min_corner[2], max_corner[2]+1, export_as_slices[2]):
+                    count+=1
+                    temp_schematic = schematic.getSubSchematic((i, j, k), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
+                    if(slice_naming == "number"):
+                        temp_schematic.save(path, name + "_" + str(count), version)
+                    elif(slice_naming == "coordinates"):
+                        temp_schematic.save(path, name + "_x" + str(i/export_as_slices[0]) + "_y" + str(j/export_as_slices[1]) + "_z" + str(k/export_as_slices[2]), version)
+                    else:
+                        temp_schematic.save(path, name + "_" + str(count) + "_x" + str(i/export_as_slices[0]) + "_y" + str(j/export_as_slices[1]) + "_z" + str(k/export_as_slices[2]), version)
+        return (filepath.replace("\\", "/") + " saved successfully!, " + str(count) + " slices exported!")
+
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -143,21 +182,18 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
         if (y_offset_percentage != 0):
             offset = int((schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())[1] / 100) * y_offset_percentage)
             schematic.getStructure().translate((0, offset, 0))
-                
+
         dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
-        fullPath = filepath.replace("\\", "/").split("/")
-        path = "/".join(fullPath[:-1])
-        name = fullPath[-1]
-
-        # this is to remove the .schem extension from the name, this is because of the way the save function works
-        name = name.replace(".schem", "")
-
-        schematic.save(path, name, version)
+        # export the structure as slices if the user wants to, if not, export the whole structure
+        message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming)
 
         end_time = time.time() #NERD STATISTICS
-        message1 = (filepath.replace("\\", "/") + " saved successfully!")
-        bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
+
+        if (message1 != ""):
+            bpy.context.window_manager.popup_menu(exportStatistics, title=message1, icon='INFO')
+        else:
+            bpy.context.window_manager.popup_menu(errorSliceSize, title="Error", icon='ERROR')
 
 
 class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
@@ -256,10 +292,28 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         description="Percentage of the Y axis to offset the origin point, \n 50% will be bottom of the schematic, if the origin is \n marked as local, it will be bottom centered"
     )
 
+    export_as_slices: IntVectorProperty(
+        name="Export as slices",
+        default=(0, 0, 0),
+        min=0,
+        max=10000,
+        description="Export the schematic as slices, the first value is for the X-length, \n the second value is for the Y-length and the third value is for the Z-length, \n leave as 0,0,0 to export just one schematic"
+    )
+
+    slice_naming: EnumProperty(
+        items=[
+            ("number", "Number", "Number of the slice, example: slice_1, slice_2, slice_3"),
+            ("coordinates", "Coordinate", "Coordinate of the slice, example slice_x0_y0_z0, slice_x0_y0_z1, slice_x0_y0_z2"),
+            ("both", "Both", "Number and coordinate of the slice, example: slice_1_x0_y0_z0, slice_2_x0_y0_z1, slice_3_x0_y0_z2")
+        ],
+        name="Slice naming",
+        default="number"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -272,13 +326,12 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "connect_scaled")
         layout.prop(self, "hollow_scaled")
         layout.prop(self, "y_percentage_offset")
-
-        
-
+        layout.prop(self, "export_as_slices")
+        layout.prop(self, "slice_naming")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
-                         text="Export Minecraft .schem")
+                         text="Minecraft .schem")
 
 
 def register():
