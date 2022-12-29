@@ -2,6 +2,7 @@ import bpy
 import math
 import time
 import itertools
+import random
 
 import subprocess
 from bpy.props import EnumProperty
@@ -93,20 +94,125 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
         max_corner = bounds[1]
         count = 0
 
+        dx=0
         for i in range(min_corner[0], max_corner[0]+1, export_as_slices[0]):
+            dx+=1
+            dy=0
             for j in range(min_corner[1], max_corner[1]+1, export_as_slices[1]):
+                dy+=1
+                dz=0
                 for k in range(min_corner[2], max_corner[2]+1, export_as_slices[2]):
+                    dz+=1
                     count+=1
                     temp_schematic = schematic.getSubSchematic((i, j, k), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
                     if(slice_naming == "number"):
                         temp_schematic.save(path, name + "_" + str(count), version)
                     elif(slice_naming == "coordinates"):
-                        temp_schematic.save(path, name + "_x" + str(i/export_as_slices[0]) + "_y" + str(j/export_as_slices[1]) + "_z" + str(k/export_as_slices[2]), version)
+                        temp_schematic.save(path, name + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
                     else:
-                        temp_schematic.save(path, name + "_" + str(count) + "_x" + str(i/export_as_slices[0]) + "_y" + str(j/export_as_slices[1]) + "_z" + str(k/export_as_slices[2]), version)
+                        temp_schematic.save(path, name + "_" + str(count) + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
         return (filepath.replace("\\", "/") + " saved successfully!, " + str(count) + " slices exported!")
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming):
+def is_whole_block(schematic):
+    match_amount = 0
+    #positions can be 0,0,0 0,0,1 0,1,0 0,1,1 1,0,0 1,0,1 1,1,0 1,1,1
+    for i, j, k in itertools.product(range(2), range(2), range(2)):
+        if(schematic.getBlockStateAt((i, j, k)) != "minecraft:air"):
+            match_amount += 1
+    return match_amount
+
+def is_air(schematic):
+    match_amount = 0
+    for i, j, k in itertools.product(range(2), range(2), range(2)):
+        if(schematic.getBlockStateAt((i, j, k)) == "minecraft:air"):
+            match_amount += 1
+    return match_amount
+
+def is_bottom_slab(schematic):
+    match_amount = 0
+    for i, j in itertools.product(range(2), range(2)):
+        if(schematic.getBlockStateAt((i, 0, j)) != "minecraft:air"):
+            match_amount += 1
+        if (schematic.getBlockStateAt((i, 1, j)) == "minecraft:air"):
+            match_amount += 1
+    return match_amount
+
+def is_top_slab(schematic):
+    match_amount = 0
+    for i, j in itertools.product(range(2), range(2)):
+        if(schematic.getBlockStateAt((i, 0, j)) == "minecraft:air"):
+            match_amount += 1
+        if (schematic.getBlockStateAt((i, 1, j)) != "minecraft:air"):
+            match_amount += 1
+    return match_amount
+
+def decide_block(schematic):
+    whole = is_whole_block(schematic)
+    air = is_air(schematic)
+    bottom_slab = is_bottom_slab(schematic)
+    top_slab = is_top_slab(schematic)
+
+    candidates = [[whole, "whole"], [air, "air"], [bottom_slab, "bottom_slab"], [top_slab, "top_slab"]]
+
+    max_match = 0
+    for candidate in candidates:
+        if(candidate[0] > max_match):
+            max_match = candidate[0]
+    
+    ret = []
+    while(True):
+        ret = random.choice(candidates)
+        if (ret[0] == max_match):
+            break
+
+    return ret
+
+def to_slab_schematic(schematic):
+    # there will be 8 candidates, the first element of the tuple is the error amount, the second is the schematic
+    candidates = [[], [], [], [], [], [], [], []]
+    bounds = schematic.getStructure().getBounds()
+    min_corner = bounds[0]
+    max_corner = bounds[1]
+    count = 0
+    for i, j, k in itertools.product(range(2), range(2), range(2)):
+        temp_min_corner = (min_corner[0] + i, min_corner[1] + j, min_corner[2] + k)
+        match_amount = 0
+        candidate = mcschematic.MCSchematic()
+        for dx in range(temp_min_corner[0], max_corner[0]+1, 2):
+            for dy in range(temp_min_corner[1], max_corner[1]+1, 2):
+                for dz in range(temp_min_corner[2], max_corner[2]+1, 2):
+                    temp_schematic = schematic.getSubSchematic((dx, dy, dz), (dx+1, dy+1, dz+1), True)
+                    amount_and_type = decide_block(temp_schematic)
+                    match_amount += int(amount_and_type[0])
+                    block = "minecraft:"
+                    if(amount_and_type[1] == "whole"):
+                        block += "stone"
+                    elif(amount_and_type[1] == "air"):
+                        block += "air"
+                    elif(amount_and_type[1] == "bottom_slab"):
+                        block += "stone_slab[type=bottom]"
+                    elif(amount_and_type[1] == "top_slab"):
+                        block += "stone_slab[type=top]"
+                    candidate.setBlock((int(dx/2), int(dy/2), int(dz/2)), block)
+        candidates[count] = [match_amount, candidate]
+        count += 1
+    
+    # we get a random from the winners
+    max_match = 0
+    for i in range(8):
+        if(candidates[i][0] > max_match):
+            max_match = candidates[i][0]
+
+    ret = mcschematic.MCSchematic()
+    while (True):
+        ret = random.choice(candidates)
+        if(ret[0] == max_match):
+            ret = candidates[i][1]
+            break
+    
+    return ret
+
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, to_slabs):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -182,6 +288,10 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
         if (y_offset_percentage != 0):
             offset = int((schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())[1] / 100) * y_offset_percentage)
             schematic.getStructure().translate((0, offset, 0))
+
+        # turns to slabs if the user wants to
+        if (to_slabs):
+            schematic = to_slab_schematic(schematic)
 
         dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
@@ -310,10 +420,16 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="number"
     )
 
+    to_slabs: BoolProperty(
+        name="Convert to slabs",
+        default=False,
+        description="Converts 8 blocks to 1 block, this is useful for statues, \n but it will not work with all blocks, for example, \n it won't work with glass, concrete, etc"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming, self.to_slabs)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -328,6 +444,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "y_percentage_offset")
         layout.prop(self, "export_as_slices")
         layout.prop(self, "slice_naming")
+        layout.prop(self, "to_slabs")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
