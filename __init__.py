@@ -4,7 +4,6 @@ import time
 import itertools
 import random
 
-import subprocess
 from bpy.props import *
 
 from . import block_list
