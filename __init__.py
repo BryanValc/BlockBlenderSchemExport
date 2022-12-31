@@ -5,7 +5,7 @@ import itertools
 import random
 
 import subprocess
-from bpy.props import EnumProperty
+from bpy.props import *
 
 from . import block_list
 
@@ -313,7 +313,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
     filename_ext = ".schem"
 
     # Add a new property to hold the selected version
-    version: EnumProperty(
+    version: bpy.props.EnumProperty(
         items=[
             ("JE_1_19_2", "JE 1.19.2(works for JE 1.19.3 also)", "Minecraft Java version 1.19.2"),
             ("JE_1_18_2", "JE 1.18.2", "Minecraft Java version 1.18.2"),
