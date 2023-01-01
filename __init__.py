@@ -15,7 +15,7 @@ from . import mcschematic, nbtlib, immutable_views
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 2, 1),
+    "version": (1, 2, 2),
     "blender": (3, 4, 0),
     "location": "File > Export > Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
@@ -117,7 +117,8 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
                         temp_schematic.save(path, name + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
                     else:
                         temp_schematic.save(path, name + "_" + str(count) + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
-        return (filepath.replace("\\", "/") + " saved successfully!, " + str(count) + " slices exported!")
+        
+        return (filepath.replace("\\", "/").replace(".schem","") + " batch saved successfully!, " + str(count) + " slices exported!")
 
 def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins):
     global start_time     #NERD STATISTICS
