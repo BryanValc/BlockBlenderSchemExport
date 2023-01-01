@@ -70,7 +70,7 @@ def scale_schematic(schematic, scaleXYZ, connect_scaled, hollow_scaled):
     return schematic
 
 # export as slices if the user wants to
-def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming):
+def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins):
 
     fullPath = filepath.replace("\\", "/").split("/")
     path = "/".join(fullPath[:-1])
@@ -104,6 +104,13 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
                     dz+=1
                     count+=1
                     temp_schematic = schematic.getSubSchematic((i, j, k), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
+                    if(individual_origins == "individual-centered"):
+                        temp_bounds = ((i, j, k), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
+                        temp_schematic.getStructure().center(temp_bounds)#center the structure, this is to make sure that the structure is centered in the slice even if it is surrounded by air
+                    elif(individual_origins == "individual-corner"):
+                        temp_bounds = ((i-export_as_slices[0]+1, j-export_as_slices[1]+1, k-export_as_slices[2]+1), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
+                        temp_schematic.getStructure().center(temp_bounds) #translate the structure to the corner of the slice
+                        
                     if(slice_naming == "number"):
                         temp_schematic.save(path, name + "_" + str(count), version)
                     elif(slice_naming == "coordinates"):
@@ -112,7 +119,7 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
                         temp_schematic.save(path, name + "_" + str(count) + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
         return (filepath.replace("\\", "/") + " saved successfully!, " + str(count) + " slices exported!")
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming):
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -192,7 +199,7 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
         dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
 
         # export the structure as slices if the user wants to, if not, export the whole structure
-        message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming)
+        message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins)
 
         end_time = time.time() #NERD STATISTICS
 
@@ -316,10 +323,20 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="number"
     )
 
+    individual_origins: EnumProperty(
+        items=[
+            ("shared", "Shared", "All the slices will have the same origin point, meaning that you can paste them without you having to move"),
+            ("individual-centered", "Individual centered", "Each slice will have its own origin point at its center"),
+            ("individual-corner", "Individual corner", "Each slice will have its origin at its own corner")
+        ],
+        name="Individual origins",
+        default="shared"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming)
+                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming, self.individual_origins)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -335,6 +352,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "export_as_slices")
         layout.prop(self, "slice_naming")
         layout.prop(self, "to_slabs")
+        layout.prop(self, "individual_origins")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
