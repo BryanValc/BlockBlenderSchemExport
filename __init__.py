@@ -10,7 +10,7 @@ from . import block_list
 
 from bpy_extras.io_utils import ExportHelper
 
-from . import mcschematic, nbtlib, immutable_views
+from .dependencies import mcschematic
 
 bl_info = {
     "name": "BlockBlender to .schem export",
