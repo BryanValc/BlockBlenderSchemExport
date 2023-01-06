@@ -1,15 +1,12 @@
-import bpy
+import itertools
 import math
 import time
-import itertools
-import random
 
+import bpy
 from bpy.props import *
-
-from . import block_list
-
 from bpy_extras.io_utils import ExportHelper
 
+from . import block_list
 from .dependencies import mcschematic
 
 bl_info = {
@@ -21,7 +18,8 @@ bl_info = {
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
     "warning": "Requires installation of dependencies",
     "tracker_url": "https://github.com/BryanValc/BlockBlenderCSVExport/issues",
-    "category": "Import-Export"}
+    "category": "Import-Export"
+    }
 
 start_time = 0 #NERD STATISTICS
 end_time = 0
@@ -352,7 +350,6 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "y_percentage_offset")
         layout.prop(self, "export_as_slices")
         layout.prop(self, "slice_naming")
-        layout.prop(self, "to_slabs")
         layout.prop(self, "individual_origins")
 
 def menu_func_export(self, context):
