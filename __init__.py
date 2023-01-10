@@ -334,8 +334,19 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         # Use the selected version when saving the schematic
-        write_schematic(context, self.filepath,
-                        mcschematic.Version[self.version], self.origin, self.rotation, self.scale, self.connect_scaled, self.hollow_scaled, self.y_percentage_offset, self.export_as_slices, self.slice_naming, self.individual_origins)
+        write_schematic(
+            context, 
+            self.filepath,
+            mcschematic.Version[self.version], 
+            self.origin, 
+            self.rotation, 
+            self.scale, 
+            self.connect_scaled, 
+            self.hollow_scaled, 
+            self.y_percentage_offset, 
+            self.export_as_slices, 
+            self.slice_naming, 
+            self.individual_origins)
         return {'FINISHED'}
 
     def draw(self, context):
