@@ -12,7 +12,7 @@ from .dependencies import mcschematic
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 2, 2),
+    "version": (1, 3, 0),
     "blender": (3, 4, 0),
     "location": "File > Export > Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
