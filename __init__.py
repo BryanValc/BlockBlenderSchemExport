@@ -149,6 +149,19 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
 
         if (len(eval_ob.data.vertices) > 0):
             data = eval_ob.data
+
+            uv_layer = data.uv_layers['full palette'].active.data
+            print(len(data.uv_layers))
+            for poly in data.polygons:
+                print("Polygon index: %d, length: %d" % (poly.index, poly.loop_total))
+
+                for loop_index in range(poly.loop_start, poly.loop_start + poly.loop_total):
+                    print("    Vertex: %d" % data.loops[loop_index].vertex_index)
+                    # print("    UV: %r" % uv_layer)
+                    # print("    UV: %r" % uv_layer[loop_index].uv)
+                    # print("    UV: %r" % uv_layer.items())
+                    # print("    UV: %r" % uv_layer.keys())
+                    # print("    UV: %r" % uv_layer.values())
             print("Vertices found, using vertex information")
             min_distance = math.dist(data.vertices[0].co, data.vertices[1].co)
             
