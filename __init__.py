@@ -12,7 +12,7 @@ from .dependencies import mcschematic
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (3, 4, 0),
     "location": "File > Export > Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
@@ -118,7 +118,7 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
         
         return (filepath.replace("\\", "/").replace(".schem","") + " batch saved successfully!, " + str(count) + " slices exported!")
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins):
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins, strings_below_falling):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -208,7 +208,37 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
             offset = int((schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())[1] / 100) * y_offset_percentage)
             schematic.getStructure().translate((0, offset, 0))
 
-        dimensions = schematic.getStructure().getStructureDimensions(schematic.getStructure().getBounds())
+        bounds = schematic.getStructure().getBounds()
+        dimensions = schematic.getStructure().getStructureDimensions(bounds)
+
+        if (strings_below_falling):
+            falling_blocks = ["minecraft:black_concrete_powder" ,
+            "minecraft:blue_concrete_powder" ,
+            "minecraft:brown_concrete_powder" ,
+            "minecraft:cyan_concrete_powder" ,
+            "minecraft:gravel",
+            "minecraft:gray_concrete_powder",
+            "minecraft:green_concrete_powder",
+            "minecraft:light_blue_concrete_powder",
+            "minecraft:light_gray_concrete_powder",
+            "minecraft:lime_concrete_powder",
+            "minecraft:magenta_concrete_powder",
+            "minecraft:orange_concrete_powder",
+            "minecraft:pink_concrete_powder",
+            "minecraft:purple_concrete_powder",
+            "minecraft:red_concrete_powder",
+            "minecraft:red_sand",
+            "minecraft:sand",
+            "minecraft:white_concrete_powder",
+            "minecraft:yellow_concrete_powder"
+            ]
+            for dx, dy, dz in itertools.product(range(bounds[0][0], bounds[1][0] + 1), range(bounds[0][1], bounds[1][1] + 1), range(bounds[0][2], bounds[1][2] + 1)):
+                block = schematic.getBlockStateAt((dx, dy, dz))
+                if (block != "minecraft:air"):
+                    if (block in falling_blocks):
+                        below_block = schematic.getBlockStateAt((dx, dy - 1, dz))
+                        if (below_block == "minecraft:air"):
+                            schematic.setBlock((dx, dy - 1, dz), "minecraft:tripwire")
 
         # export the structure as slices if the user wants to, if not, export the whole structure
         message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins)
@@ -345,6 +375,12 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         default="shared"
     )
 
+    strings_below_falling: BoolProperty(
+        name="Strings below falling",
+        default=False,
+        description="If there are air blocks below a falling block, it will be replaced with a string"
+    )
+
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(
@@ -359,7 +395,8 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
             self.y_percentage_offset, 
             self.export_as_slices, 
             self.slice_naming, 
-            self.individual_origins)
+            self.individual_origins,
+            self.strings_below_falling)
         return {'FINISHED'}
 
     def draw(self, context):
@@ -375,6 +412,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "export_as_slices")
         layout.prop(self, "slice_naming")
         layout.prop(self, "individual_origins")
+        layout.prop(self, "strings_below_falling")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
