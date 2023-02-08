@@ -1,5 +1,7 @@
 import itertools
 import math
+import random
+import re
 import time
 
 import bpy
@@ -12,7 +14,7 @@ from .dependencies import mcschematic
 bl_info = {
     "name": "BlockBlender to .schem export",
     "author": "Bryan Valdez",
-    "version": (1, 3, 1),
+    "version": (1, 31, 1),
     "blender": (3, 4, 0),
     "location": "File > Export > Minecraft .schem",
     "description": "add-on that converts the selected object affected by the geometry node shown in this video www.youtube.com/watch?v=TUw65gz8nOs",
@@ -67,8 +69,59 @@ def scale_schematic(schematic, scaleXYZ, connect_scaled, hollow_scaled):
             block_count = temp_block_count
     return schematic
 
+def write_variations(schematic, path, name, version, post_edits):
+    variations = re.findall(r'\(([^\)]+)\)', post_edits) # find all the variations
+    var_count = 0
+
+    for variation in variations:
+        var_count += 1
+        suboperations = variation.split("&")
+
+        temp_schematic = mcschematic.MCSchematic()
+        temp_schematic.placeSchematic(schematic, (0, 0, 0))
+
+        for suboperation in suboperations:
+
+            targets_and_sources = suboperation.split(":")
+            target_materials = targets_and_sources[0].split(",")
+            target_list = []
+            for target_material in target_materials:
+                if "%" in target_material:
+                    percentages_and_blocks = target_material.split("%")
+                    material = [int(percentages_and_blocks[0]), percentages_and_blocks[1]]
+                    target_list.append(material)
+                else:
+                    material = [100, target_material]
+                    target_list.append(material)
+            source_materials = targets_and_sources[1].split(",")
+            source_list = []
+            for source_material in source_materials:
+                if "%" in source_material:
+                    percentages_and_blocks = source_material.split("%")
+                    material = [int(percentages_and_blocks[0]), percentages_and_blocks[1]]
+                    source_list.append(material)
+                else:
+                    material = [100, source_material]
+                    source_list.append(material)
+        
+            temp_schematic = replace_blocks(temp_schematic, target_list, source_list)
+        temp_schematic.save(path, (name+"_variation"+str(var_count)), version)
+    return len(variations)
+
+def replace_blocks(schematic, target_list, source_list):
+    mask = []
+    for target in target_list:
+        mask.append("minecraft:"+target[1])
+    bounds = schematic.getStructure().getBounds()
+    for dx, dy, dz in itertools.product(range(bounds[0][0], bounds[1][0]+1), range(bounds[0][1], bounds[1][1]+1), range(bounds[0][2], bounds[1][2]+1)):
+        block = schematic.getBlockStateAt((dx, dy, dz))
+        if block in mask:
+            source = random.choices(source_list, weights=[x[0] for x in source_list], k=1)[0]
+            schematic.setBlock((dx, dy, dz), source[1])
+    return schematic
+
 # export as slices if the user wants to
-def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins):
+def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins, post_edits):
 
     fullPath = filepath.replace("\\", "/").split("/")
     path = "/".join(fullPath[:-1])
@@ -76,10 +129,16 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
 
     # this is to remove the .schem extension from the name, this is because of the way the save function works
     name = name.replace(".schem", "")
-
+    variations = 0
     if (export_as_slices[0] == 0 and export_as_slices[1] == 0 and export_as_slices[2] == 0):
         schematic.save(path, name, version)
-        return (filepath.replace("\\", "/") + " saved successfully!")
+        if(post_edits != ""):
+            variations = write_variations(schematic, path, name, version, post_edits)
+        if variations == 0:
+            return (filepath.replace("\\", "/") + " saved successfully!")
+        else:
+            return (filepath.replace("\\", "/") + " saved successfully!, " + str(variations) + " extra variations saved!")
+        
     else:
         if(export_as_slices[0] == 0 or export_as_slices[1] == 0 or export_as_slices[2] == 0):
             bpy.context.window_manager.popup_menu(
@@ -108,17 +167,26 @@ def slice_schematic(schematic, filepath, version, export_as_slices, slice_naming
                     elif(individual_origins == "individual-corner"):
                         temp_bounds = ((i-export_as_slices[0]+1, j-export_as_slices[1]+1, k-export_as_slices[2]+1), (i + export_as_slices[0]-1, j + export_as_slices[1]-1, k + export_as_slices[2]-1))
                         temp_schematic.getStructure().center(temp_bounds) #translate the structure to the corner of the slice
-                        
-                    if(slice_naming == "number"):
-                        temp_schematic.save(path, name + "_" + str(count), version)
-                    elif(slice_naming == "coordinates"):
-                        temp_schematic.save(path, name + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
-                    else:
-                        temp_schematic.save(path, name + "_" + str(count) + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz), version)
-        
-        return (filepath.replace("\\", "/").replace(".schem","") + " batch saved successfully!, " + str(count) + " slices exported!")
 
-def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins, strings_below_falling):
+                    temp_name = ""     
+                    if(slice_naming == "number"):
+                        temp_name = name + "_" + str(count)
+                    elif(slice_naming == "coordinates"):
+                        temp_name = name + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz)
+                    else:
+                        temp_name = name + "_" + str(count) + "_x" + str(dx) + "_y" + str(dy) + "_z" + str(dz)
+                    
+                    temp_schematic.save(path, temp_name, version)
+                    
+                    if(post_edits != ""):
+                        variations = write_variations(temp_schematic, path, temp_name, version, post_edits)
+                    
+        if variations == 0:
+            return (filepath.replace("\\", "/").replace(".schem","") + " batch saved successfully!, " + str(count) + " slices exported!")
+        else:
+            return (filepath.replace("\\", "/").replace(".schem","") + " batch saved successfully!, " + str(count) + " slices exported!, " + str(variations) + " extra variations saved!")
+
+def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, connect_scaled, hollow_scaled, y_offset_percentage, export_as_slices, slice_naming, individual_origins, strings_below_falling, post_edits):
     global start_time     #NERD STATISTICS
     global end_time
     global block_count
@@ -241,7 +309,7 @@ def write_schematic(context, filepath, version, origin, rotation, scaleXYZ, conn
                             schematic.setBlock((dx, dy - 1, dz), "minecraft:tripwire")
 
         # export the structure as slices if the user wants to, if not, export the whole structure
-        message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins)
+        message1 = slice_schematic(schematic, filepath, version, export_as_slices, slice_naming, individual_origins, post_edits)
 
         end_time = time.time() #NERD STATISTICS
 
@@ -381,6 +449,11 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         description="If there are air blocks below a falling block, it will be replaced with a string"
     )
 
+    post_edits: StringProperty(
+        name="Post edits",
+        default="",
+        description="You can replace blocks before exporting and create different variations,e for instance: (stone,dirt,grass_block:andesite) will replace stone, dirt and grass_block with andesite, (red_concrete:blue_concrete&red_wool:blue_wool), will replace red concrete with blue concrete, and red wool with blue wool, (red_concrete:50%blue_concrete,100%green_concrete) will replace red concrete, with 33.3% chance of turning into blue concrete, and 66.6% chance of turning into green concrete for every individual block, creating a noise, you can also skip the percentages, (red_concrete:blue_concrete),(red_concrete:green_concrete) will create two variations in different .schem files"
+    )
     def execute(self, context):
         # Use the selected version when saving the schematic
         write_schematic(
@@ -396,7 +469,9 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
             self.export_as_slices, 
             self.slice_naming, 
             self.individual_origins,
-            self.strings_below_falling)
+            self.strings_below_falling,
+            self.post_edits
+            )
         return {'FINISHED'}
 
     def draw(self, context):
@@ -413,6 +488,7 @@ class ExportSCHEMATIC(bpy.types.Operator, ExportHelper):
         layout.prop(self, "slice_naming")
         layout.prop(self, "individual_origins")
         layout.prop(self, "strings_below_falling")
+        layout.prop(self, "post_edits")
 
 def menu_func_export(self, context):
     self.layout.operator(ExportSCHEMATIC.bl_idname,
